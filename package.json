@@ -1,0 +1,24 @@
+{
+  "name": "uptimelens",
+  "version": "1.0.0",
+  "description": "## The Problem Most small teams and solo developers run servers without real visibility into their health.  A container can silently crash, disk space can quietly fill up, or a deploy can fail — and  nobody finds out until users complain. Enterprise tools like Datadog or New Relic solve this,  but they're expensive and often overkill for a single server or small project — so many  self-hosted setups end up running blind.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Arthur-cloud1/UptimeLens.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Arthur-cloud1/UptimeLens/issues"
+  },
+  "homepage": "https://github.com/Arthur-cloud1/UptimeLens#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.23.0"
+  }
+}
