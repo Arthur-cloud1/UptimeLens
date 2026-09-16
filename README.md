@@ -28,3 +28,4 @@ while still giving the visibility that larger tools provide.
 
 ## Status
 🚧 In active development — built as a hands-on capstone project.
+
