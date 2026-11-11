@@ -1,4 +1,3 @@
-version: '3.8'
 services:
    db:
      image: postgres:16
@@ -9,7 +8,19 @@ services:
      
      ports: 
        - "5432:5432"
-
+   
+   app:
+     build: .
+     ports:
+       - "3000:3000"
+     environment:
+       DB_HOST: db
+       DB_PORT: 5432
+       DB_USER: uptimelens
+       DB_PASSWORD: uptimelens_dev
+       DB_NAME: uptimelens
+     depends_on:
+       - db
      volumes:
       - pgdata:/var/lib/postgresql/data
 

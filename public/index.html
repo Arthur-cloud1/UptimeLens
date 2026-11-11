@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>UptimeLens</title>
+</head>
+<body>
+  <h1>UptimeLens Dashboard</h1>
+  <h2>Alerts</h2>
+  <ul id="alerts"></ul>
+
+  <script>
+    fetch('/alerts')
+      .then(res => res.json())
+      .then(alerts => {
+        const list = document.getElementById('alerts');
+        alerts.forEach(a => {
+          const li = document.createElement('li');
+          li.textContent = a.message + ' (' + a.severity + ')' + (a.resolved ? ' - resolved' : ' - OPEN');
+          list.appendChild(li);
+        });
+      });
+  </script>
+  <h2>Server Readings</h2>
+  <ul id="stats"></ul>
+
+  <script>
+    fetch('/stats')
+      .then(res => res.json())
+      .then(readings => {
+        const list = document.getElementById('stats');
+        readings.forEach(s => {
+          const li = document.createElement('li');
+          li.textContent = 'Disk ' + s.disk_usage + '% | Memory ' + s.memory_usage + '%';
+          list.appendChild(li);
+        });
+      });
+  </script>
+</body>
+</html>
+
