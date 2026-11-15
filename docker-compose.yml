@@ -5,7 +5,8 @@ services:
        POSTGRES_USER: uptimelens
        POSTGRES_PASSWORD: uptimelens_dev
        POSTGRES_DB: uptimelens
-       
+      volumes:
+      - pgdata:/var/lib/postgresql/data   
    
    app:
      build: .
@@ -19,8 +20,6 @@ services:
        DB_NAME: uptimelens
      depends_on:
        - db
-     volumes:
-      - pgdata:/var/lib/postgresql/data
 
 volumes:
    pgdata:
