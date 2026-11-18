@@ -3,7 +3,7 @@ services:
      image: postgres:16
      environment:
        POSTGRES_USER: uptimelens
-       POSTGRES_PASSWORD: uptimelens_dev
+       POSTGRES_PASSWORD: ${DB_PASSWORD}
        POSTGRES_DB: uptimelens
      volumes:
       - pgdata:/var/lib/postgresql/data   
@@ -16,7 +16,7 @@ services:
        DB_HOST: db
        DB_PORT: 5432
        DB_USER: uptimelens
-       DB_PASSWORD: uptimelens_dev
+       DB_PASSWORD: ${DB_PASSWORD}
        DB_NAME: uptimelens
      depends_on:
        - db
