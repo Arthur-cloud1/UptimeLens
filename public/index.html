@@ -1,40 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>UptimeLens</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 24px; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    h1 { margin: 0 0 4px; }
+    .sub { color: #94a3b8; margin-bottom: 24px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .card { background: #1e293b; border-radius: 12px; padding: 20px; border-top: 6px solid #475569; }
+    .card .label { color: #94a3b8; font-size: 14px; }
+    .card .value { font-size: 40px; font-weight: 700; margin-top: 8px; }
+    .card.green { border-top-color: #22c55e; }
+    .card.amber { border-top-color: #f59e0b; }
+    .card.red   { border-top-color: #ef4444; }
+    h2 { font-size: 18px; margin: 0 0 12px; }
+    .panel { background: #1e293b; border-radius: 12px; padding: 8px 20px; margin-bottom: 32px; }
+    .row { padding: 12px 0; border-bottom: 1px solid #334155; }
+    .row:last-child { border-bottom: none; }
+    .empty { color: #94a3b8; padding: 16px 0; }
+    .tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; margin-left: 8px; }
+    .tag.open { background: #7f1d1d; color: #fecaca; }
+    .tag.done { background: #14532d; color: #bbf7d0; }
+  </style>
 </head>
 <body>
-  <h1>UptimeLens Dashboard</h1>
-  <h2>Alerts</h2>
-  <ul id="alerts"></ul>
+  <div class="wrap">
+    <h1>UptimeLens</h1>
+    <div class="sub">Server health at a glance</div>
+
+    <div class="cards">
+      <div class="card" id="disk-card"><div class="label">Disk</div><div class="value" id="disk">--</div></div>
+      <div class="card" id="mem-card"><div class="label">Memory</div><div class="value" id="mem">--</div></div>
+      <div class="card" id="alerts-card"><div class="label">Open alerts</div><div class="value" id="open-count">--</div></div>
+    </div>
+
+    <h2>Alerts</h2>
+    <div class="panel" id="alerts"></div>
+
+    <h2>Recent readings</h2>
+    <div class="panel" id="stats"></div>
+  </div>
 
   <script>
-    fetch('/alerts')
-      .then(res => res.json())
-      .then(alerts => {
-        const list = document.getElementById('alerts');
-        alerts.forEach(a => {
-          const li = document.createElement('li');
-          li.textContent = a.message + ' (' + a.severity + ')' + (a.resolved ? ' - resolved' : ' - OPEN');
-          list.appendChild(li);
-        });
-      });
-  </script>
-  <h2>Server Readings</h2>
-  <ul id="stats"></ul>
+    function level(pct) {
+      if (pct >= 90) return 'red';
+      if (pct >= 70) return 'amber';
+      return 'green';
+    }
 
-  <script>
     fetch('/stats')
       .then(res => res.json())
       .then(readings => {
-        const list = document.getElementById('stats');
-        readings.forEach(s => {
-          const li = document.createElement('li');
-          li.textContent = 'Disk ' + s.disk_usage + '% | Memory ' + s.memory_usage + '%';
-          list.appendChild(li);
+        const box = document.getElementById('stats');
+        if (readings.length === 0) {
+          box.innerHTML = '<div class="empty">No readings yet.</div>';
+          return;
+        }
+        readings.sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+        const latest = readings[0];
+        const disk = Number(latest.disk_usage);
+        const mem = Number(latest.memory_usage);
+
+        document.getElementById('disk').textContent = disk + '%';
+        document.getElementById('mem').textContent = mem + '%';
+        document.getElementById('disk-card').classList.add(level(disk));
+        document.getElementById('mem-card').classList.add(level(mem));
+
+        readings.slice(0, 10).forEach(s => {
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.textContent = new Date(s.recorded_at).toLocaleString() +
+            '  |  Disk ' + s.disk_usage + '%  |  Memory ' + s.memory_usage + '%';
+          box.appendChild(row);
+        });
+      });
+
+    fetch('/alerts')
+      .then(res => res.json())
+      .then(alerts => {
+        const box = document.getElementById('alerts');
+        const open = alerts.filter(a => !a.resolved).length;
+        document.getElementById('open-count').textContent = open;
+        document.getElementById('alerts-card').classList.add(open === 0 ? 'green' : 'red');
+
+        if (alerts.length === 0) {
+          box.innerHTML = '<div class="empty">No alerts. Everything looks quiet.</div>';
+          return;
+        }
+        alerts.forEach(a => {
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.textContent = a.message + ' (' + a.severity + ')';
+          const tag = document.createElement('span');
+          tag.className = 'tag ' + (a.resolved ? 'done' : 'open');
+          tag.textContent = a.resolved ? 'resolved' : 'OPEN';
+          row.appendChild(tag);
+          box.appendChild(row);
         });
       });
   </script>
 </body>
 </html>
-
