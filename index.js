@@ -30,6 +30,25 @@ app.get('/db-test', async (req, res) => {
   }
 });
 
+async function checkAlert(message, severity, breached) {
+  const open = await pool.query(
+    'SELECT id FROM alerts WHERE message = $1 AND resolved = false',
+    [message]
+  );
+  if (breached && open.rows.length === 0) {
+    await pool.query(
+      'INSERT INTO alerts (message, severity) VALUES ($1, $2)',
+      [message, severity]
+    );
+  }
+  if (!breached && open.rows.length > 0) {
+    await pool.query(
+      'UPDATE alerts SET resolved = true WHERE message = $1 AND resolved = false',
+      [message]
+    );
+  }
+}
+
 app.post('/stats', async (req, res) => {
   try {
     const { disk_usage, memory_usage, uptime_seconds } = req.body;
@@ -37,6 +56,8 @@ app.post('/stats', async (req, res) => {
       'INSERT INTO server_stats (disk_usage, memory_usage, uptime_seconds) VALUES ($1, $2, $3) RETURNING *',
       [disk_usage, memory_usage, uptime_seconds]
     );
+    await checkAlert('Disk usage above 85%', 'high', Number(disk_usage) >= 85);
+    await checkAlert('Memory usage above 90%', 'medium', Number(memory_usage) >= 90);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
