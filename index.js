@@ -30,6 +30,13 @@ app.get('/db-test', async (req, res) => {
   }
 });
 
+function requireKey(req, res, next) {
+  if (!process.env.API_KEY || req.get('x-api-key') !== process.env.API_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
 async function checkAlert(message, severity, breached) {
   const open = await pool.query(
     'SELECT id FROM alerts WHERE message = $1 AND resolved = false',
@@ -49,7 +56,7 @@ async function checkAlert(message, severity, breached) {
   }
 }
 
-app.post('/stats', async (req, res) => {
+app.post('/stats', requireKey,  async (req, res) => {
   try {
     const { disk_usage, memory_usage, uptime_seconds } = req.body;
     const result = await pool.query(
@@ -76,7 +83,7 @@ app.get('/stats', async (req, res) => {
 });
 
 
-app.post('/alerts', async (req, res) => {
+app.post('/alerts', requireKey, async (req, res) => {
   try {
     const { message, severity } = req.body;
     const result = await pool.query(
@@ -101,7 +108,7 @@ app.get('/alerts', async (req, res) => {
 });
 
 
-app.patch('/alerts/:id', async (req, res) => {
+app.patch('/alerts/:id', requireKey, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
