@@ -20,6 +20,7 @@ services:
        DB_USER: uptimelens
        DB_PASSWORD: ${DB_PASSWORD}
        DB_NAME: uptimelens
+       API_KEY: ${API_KEY}
      depends_on:
        - db
 
