@@ -51,56 +51,75 @@
       return 'green';
     }
 
-    fetch('/stats')
-      .then(res => res.json())
-      .then(readings => {
-        const box = document.getElementById('stats');
-        if (readings.length === 0) {
-          box.innerHTML = '<div class="empty">No readings yet.</div>';
-          return;
-        }
-        readings.sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
-        const latest = readings[0];
-        const disk = Number(latest.disk_usage);
-        const mem = Number(latest.memory_usage);
+    function setLevel(el, cls) {
+      el.classList.remove('green', 'amber', 'red');
+      el.classList.add(cls);
+    }
 
-        document.getElementById('disk').textContent = disk + '%';
-        document.getElementById('mem').textContent = mem + '%';
-        document.getElementById('disk-card').classList.add(level(disk));
-        document.getElementById('mem-card').classList.add(level(mem));
+    function loadStats() {
+      fetch('/stats')
+        .then(res => res.json())
+        .then(readings => {
+          const box = document.getElementById('stats');
+          box.innerHTML = '';
+          if (readings.length === 0) {
+            box.innerHTML = '<div class="empty">No readings yet.</div>';
+            return;
+          }
+          readings.sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+          const latest = readings[0];
+          const disk = Number(latest.disk_usage);
+          const mem = Number(latest.memory_usage);
 
-        readings.slice(0, 10).forEach(s => {
-          const row = document.createElement('div');
-          row.className = 'row';
-          row.textContent = new Date(s.recorded_at).toLocaleString() +
-            '  |  Disk ' + s.disk_usage + '%  |  Memory ' + s.memory_usage + '%';
-          box.appendChild(row);
+          document.getElementById('disk').textContent = disk + '%';
+          document.getElementById('mem').textContent = mem + '%';
+          setLevel(document.getElementById('disk-card'), level(disk));
+          setLevel(document.getElementById('mem-card'), level(mem));
+
+          readings.slice(0, 10).forEach(s => {
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.textContent = new Date(s.recorded_at).toLocaleString() +
+              '  |  Disk ' + s.disk_usage + '%  |  Memory ' + s.memory_usage + '%';
+            box.appendChild(row);
+          });
         });
-      });
+    }
 
-    fetch('/alerts')
-      .then(res => res.json())
-      .then(alerts => {
-        const box = document.getElementById('alerts');
-        const open = alerts.filter(a => !a.resolved).length;
-        document.getElementById('open-count').textContent = open;
-        document.getElementById('alerts-card').classList.add(open === 0 ? 'green' : 'red');
+    function loadAlerts() {
+      fetch('/alerts')
+        .then(res => res.json())
+        .then(alerts => {
+          const box = document.getElementById('alerts');
+          box.innerHTML = '';
+          const open = alerts.filter(a => !a.resolved).length;
+          document.getElementById('open-count').textContent = open;
+          setLevel(document.getElementById('alerts-card'), open === 0 ? 'green' : 'red');
 
-        if (alerts.length === 0) {
-          box.innerHTML = '<div class="empty">No alerts. Everything looks quiet.</div>';
-          return;
-        }
-        alerts.forEach(a => {
-          const row = document.createElement('div');
-          row.className = 'row';
-          row.textContent = a.message + ' (' + a.severity + ')';
-          const tag = document.createElement('span');
-          tag.className = 'tag ' + (a.resolved ? 'done' : 'open');
-          tag.textContent = a.resolved ? 'resolved' : 'OPEN';
-          row.appendChild(tag);
-          box.appendChild(row);
+          if (alerts.length === 0) {
+            box.innerHTML = '<div class="empty">No alerts. Everything looks quiet.</div>';
+            return;
+          }
+          alerts.forEach(a => {
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.textContent = a.message + ' (' + a.severity + ')';
+            const tag = document.createElement('span');
+            tag.className = 'tag ' + (a.resolved ? 'done' : 'open');
+            tag.textContent = a.resolved ? 'resolved' : 'OPEN';
+            row.appendChild(tag);
+            box.appendChild(row);
+          });
         });
-      });
+    }
+
+    function refresh() {
+      loadStats();
+      loadAlerts();
+    }
+
+    refresh();
+    setInterval(refresh, 60000);
   </script>
 </body>
 </html>
