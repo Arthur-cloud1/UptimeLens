@@ -8,7 +8,7 @@ A small, self-hosted dashboard that shows how healthy your server is at a glance
 
 - Reads the server's **disk usage, memory usage and uptime** every minute
 - Shows the latest numbers as colour-coded cards (green, amber, red)
-- **Opens an alert automatically** when disk reaches 85% or memory reaches 90%, and **resolves it automatically** when the number recovers
+- **Opens an alert automatically** when disk reaches 85% or memory reaches 90%, and **resolves it automatically** after 3 clean readings in a row (about 3 minutes), so it doesn't flap on and off
 - Refreshes itself every minute, with no page reload
 - Only accepts readings from a script that holds a secret key
 
