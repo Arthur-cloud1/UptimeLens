@@ -1,5 +1,6 @@
 
-
+const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
+const sns = new SNSClient({ region: 'eu-west-1' });
 const express = require('express');
 require('dotenv').config();
 const { Pool } = require('pg');
@@ -54,6 +55,15 @@ async function checkAlert(message, severity, column, limit) {
       'INSERT INTO alerts (message, severity) VALUES ($1, $2)',
       [message, severity]
     );
+  try {
+      await sns.send(new PublishCommand({
+        TopicArn: process.env.SNS_TOPIC_ARN,
+        Subject: 'UptimeLens alert',
+        Message: `Alert: ${message} (severity: ${severity})`
+      }));
+    } catch (err) {
+      console.error('Could not send email:', err);
+    }
   }
   if (recovered && open.rows.length > 0) {
     await pool.query(

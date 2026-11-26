@@ -21,6 +21,7 @@ services:
        DB_PASSWORD: ${DB_PASSWORD}
        DB_NAME: uptimelens
        API_KEY: ${API_KEY}
+       SNS_TOPIC_ARN: ${SNS_TOPIC_ARN}
      depends_on:
        - db
 
